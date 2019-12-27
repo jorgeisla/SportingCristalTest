@@ -3,16 +3,16 @@ from django.db import models
 # Modelo de datos inicial
 
 '''Clase Stadium
-donde se incluye su nombre, ciudad, latitud y longitud
+se utiliza para almacenar nombre, ciudad, latitud y longitud del estadio.
 '''
 
 
 class Stadium(models.Model):
-    slug = models.SlugField(unique=True)
-    name = models.CharField()
-    city = models.CharField()
-    latitude = models.CharField()
-    longitude = models.CharField()
+    slug = models.SlugField(null=True)
+    name = models.CharField(max_length=256, null=True)
+    city = models.CharField(max_length=256, null=True)
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
 
     @classmethod
     def create(cls, slug, name, city, latitude, longitude):
@@ -20,7 +20,7 @@ class Stadium(models.Model):
         return stadium
 
     def __str__(self):
-        return self.slug + self.name + self.city + self.latitude + self.longitude
+        return self.slug + ' ' + self.name + ' ' + self.city + ' ' + self.latitude.__str__() + ' ' + self.longitude.__str__()
 
 '''Clase Referee
 se utiliza para almacenar los nombres de los arbitros
@@ -28,7 +28,7 @@ se utiliza para almacenar los nombres de los arbitros
 
 
 class Referee(models.Model):
-    name = models.CharField()
+    name = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, name):
@@ -44,10 +44,10 @@ se utiliza para almacenar los distintos equipos con su nombre, shortName y una i
 
 
 class Team(models.Model):
-    slug = models.SlugField(unique=True)
-    name = models.CharField()
-    shortName = models.CharField()
-    image = models.CharField()
+    slug = models.SlugField(null=True)
+    name = models.CharField(max_length=256, null=True)
+    shortName = models.CharField(max_length=256, null=True)
+    image = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, slug, name, shortName, image):
@@ -55,7 +55,7 @@ class Team(models.Model):
         return team
 
     def __str__(self):
-        return self.slug + self.name + self.shortName + self.image
+        return self.slug + ' ' + self.name + ' ' + self.shortName + ' ' + self.image
 
 
 '''Clase Championship
@@ -64,8 +64,8 @@ se utilizara para almacenar los distintos torneos con su nombre y un contexto
 
 
 class Championship(models.Model):
-    slug = models.SlugField(unique=True)
-    name = models.CharField()
+    slug = models.SlugField(null=True)
+    name = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, slug, name):
@@ -73,22 +73,25 @@ class Championship(models.Model):
         return championship
 
     def __str__(self):
-        return self.slug + self.name
+        return self.slug + ' ' + self.name
 
 
 '''Clase ActionsCalendar
-almacena las aciciones de calendario
+almacena las acciones de calendario
 '''
 
 
 class ActionsCalendar(models.Model):
-    icon = models.ImageField()
-    url = models.CharField()
+    icon = models.CharField(max_length=256, null=True)
+    url = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, icon, url):
         actionsCalendar = cls(icon=icon, url=url)
         return actionsCalendar
+
+    def __str__(self):
+        return self.icon + ' ' + self.url
 
 
 '''Clase ActionsUrl
@@ -97,14 +100,15 @@ almacena las aciciones de Url
 
 
 class ActionsUrl(models.Model):
-    icon = models.ImageField()
-    url = models.CharField()
+    icon = models.CharField(max_length=256, null=True)
+    url = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, icon, url):
         actionsUrl = cls(icon=icon, url=url)
         return actionsUrl
-
+    def __str__(self):
+        return self.icon + ' ' + self.url
 
 '''Clase State
 se utilizará para almacenar los distintos estados de un partido con un nombre y un tipo
@@ -112,8 +116,8 @@ se utilizará para almacenar los distintos estados de un partido con un nombre y
 
 
 class State(models.Model):
-    name = models.CharField()
-    type = models.CharField()
+    name = models.CharField(max_length=256, null=True)
+    type = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, name, type):
@@ -121,14 +125,14 @@ class State(models.Model):
         return state
 
     def __str__(self):
-        return self.name + self.type
+        return self.name + ' ' + self.type
 
 '''Clase Meta'''
 
 
 class Meta(models.Model):
-    own_side = models.CharField()
-    is_own_match = models.CharField()
+    own_side = models.CharField(max_length=256, null=True)
+    is_own_match = models.CharField(max_length=256, null=True)
 
     @classmethod
     def create(cls, own_side, is_own_match):
@@ -136,7 +140,7 @@ class Meta(models.Model):
         return meta
 
     def __str__(self):
-        return self.own_side + self.is_own_match
+        return self.own_side + ' ' + self.is_own_match
 
 
 '''Clase Match
@@ -145,37 +149,41 @@ se utilizara para almacenar todo lo relacionado a un partido
 
 
 class Match(models.Model):
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(null=True)
     championship = models.ForeignKey(Championship, on_delete=models.CASCADE)
-    local = models.ForeignKey(Team, on_delete=models.CASCADE)
-    away = models.ForeignKey(Team, on_delete=models.CASCADE)
-    local_goals = models.CharField()
-    local_penalty_goals = models.CharField()
-    away_goals = models.CharField()
-    away_penalty_goals = models.CharField()
-    scorer = models.CharField()
+    local = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='local')
+    away = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='visita')
+    local_goals = models.IntegerField(null=True)
+    local_penalty_goals = models.IntegerField(null=True)
+    away_goals = models.IntegerField(null=True)
+    away_penalty_goals = models.IntegerField(null=True)
+    scorer = models.CharField(max_length=256, null=True)
     stadium = models.ForeignKey(Stadium, on_delete=models.CASCADE)
     referee = models.ForeignKey(Referee, on_delete=models.CASCADE)
-    ticketing = models.CharField()
-    dateTime = models.CharField()
-    timeStamp = models.CharField()
+    ticketing = models.BooleanField(null=True)
+    datetime = models.CharField(max_length=256, null=True)
+    timestamp = models.IntegerField(null=True)
     actionsCalendar = models.ForeignKey(ActionsCalendar, on_delete=models.CASCADE)
     actionsUrl = models.ForeignKey(ActionsUrl, on_delete=models.CASCADE)
     meta = models.ForeignKey(Meta, on_delete=models.CASCADE)
-    period = models.CharField()
+    period = models.CharField(max_length=256, null=True)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
-    selected = models.BooleanField()
-    on_live = models.BooleanField()
-    is_confirmed = models.BooleanField()
+    selected = models.BooleanField(null=True)
+    on_live = models.BooleanField(null=True)
+    is_confirmed = models.BooleanField(null=True)
 
     @classmethod
     def create(cls, slug, championship, local, away, local_goals, local_penalty_goals, away_goals,
                away_penalty_goals,
-               scorer, stadium, referee, ticketing, datetime, timestamp, actions, meta, period, state, selected,
-               on_live, is_confirmed):
+               scorer, stadium, referee, ticketing, datetime, timestamp, actionsCalendar, actionsUrl, meta, period, state,
+               selected, on_live, is_confirmed):
         match = cls(slug=slug, championship=championship, local=local, away=away, local_goals=local_goals,
                     local_penalty_goals=local_penalty_goals, away_goals=away_goals,
                     away_penalty_goals=away_penalty_goals, scorer=scorer, stadium=stadium, referee=referee,
-                    ticketing=ticketing, datetime=datetime, timestamp=timestamp, actions=actions, meta=meta,
+                    ticketing=ticketing, datetime=datetime, timestamp=timestamp, actionsCalendar=actionsCalendar,
+                    actionsUrl=actionsUrl, meta=meta,
                     period=period, state=state, selected=selected, on_live=on_live, is_confirmed=is_confirmed)
         return match
+
+    def __str__(self):
+        return self.slug

@@ -1,51 +1,69 @@
 from modelo_sportingCristal.models import *
 import requests
+import json
 
 def run():
     r = requests.get('http://futbol.funx.io/api/v2/sporting-cristal/home/match/')
     texto = r.text
-    replace = ['{', '}', '[', ']', ',', ':']
-    for simbol in replace:
-        texto = texto.replace(simbol, '"')
-    a = texto.split('"')
-    while a.__contains__(''):
-        a.remove('')
-    while a.__contains__(':'):
-        a.remove(':')
-    print(a)
-
-    indiceChampionship = a.index('championship')
-    indiceStadium = a.index('stadium')
-    indiceReferee = a.index('referee')
-    indiceLocal = a.index('local')
-    indiceAway = a.index('away')
-    indiceLocalGoals = a.index('local_goals')
-    indiceAwayGoals = a.index('away_goals')
-    indiceLocalPenaltyGoals = a.index('local_penalty_goals')
-    indiceAwayPenaltyGoals = a.index('away_penalty_goals')
-    indiceScorer = a.index('scorer')
-    indiceTicketing = a.index('ticketing')
-    indiceActions = a.index('actions')
-    indiceState = a.index('state')
-    indiceMeta = a.index('meta')
-    indiceDateTime = a.index('datetime')
-    indiceTimeStamp = a.index('timestamp')
-    indicePeriod = a.index('period')
-    indiceSelected = a.index('selected')
-    indiceOnLive = a.index('on_live')
-    indiceIsConfirmed = a.index('is_confirmed')
-
-    championship = Championship.create(a[indiceChampionship + 2], a[indiceChampionship + 4])
-    referee = Referee.create(a[indiceReferee + 2])
-    local = Team.create(a[indiceLocal +2], a[indiceLocal + 4], a[indiceLocal + 6], a[indiceLocal+8]+':'+a[indiceLocal+9])
-    away = Team.create(a[indiceAway + 2], a[indiceAway + 4], a[indiceAway + 6], a[indiceAway+8]+':'+a[indiceAway+9])
-    stadium = Stadium.create(a[indiceStadium + 2], a[indiceStadium + 4], a[indiceStadium + 6], a[indiceStadium + 8], a[indiceStadium + 10])
-    meta = Meta.create(a[indiceMeta + 2], a[indiceMeta + 4])
-
-    print(championship.__str__())
-    print(referee.__str__())
-    print(local.__str__())
-    print(away.__str__())
-    print(stadium.__str__())
-    print(meta.__str__())
+    listaDePartidos = json.loads(texto)
+    numeroDePartidos = listaDePartidos.__len__()
+    contador = 0
+    while contador < numeroDePartidos:
+        championship = Championship.create(listaDePartidos[contador].get('championship').get('slug'),
+                                           listaDePartidos[contador].get('championship').get('name'))
+        stadium = Stadium.create(listaDePartidos[contador].get('stadium').get('slug'),
+                                 listaDePartidos[contador].get('stadium').get('name'),
+                                 listaDePartidos[contador].get('stadium').get('city'),
+                                 listaDePartidos[contador].get('stadium').get('latitude'),
+                                 listaDePartidos[contador].get('stadium').get('longitude'))
+        referee = Referee.create(listaDePartidos[contador].get('referee').get('name'))
+        local = Team.create(listaDePartidos[contador].get('local').get('slug'),
+                            listaDePartidos[contador].get('local').get('name'),
+                            listaDePartidos[contador].get('local').get('short_name'),
+                            listaDePartidos[contador].get('local').get('image'))
+        away = Team.create(listaDePartidos[contador].get('away').get('slug'),
+                            listaDePartidos[contador].get('away').get('name'),
+                            listaDePartidos[contador].get('away').get('short_name'),
+                            listaDePartidos[contador].get('away').get('image'))
+        actionsCalendar = ActionsCalendar.create(listaDePartidos[contador].get('actions')[0].get('icon'),
+                                                 listaDePartidos[contador].get('actions')[0].get('url'))
+        actionsUrl = ActionsUrl.create(listaDePartidos[contador].get('actions')[1].get('icon'),
+                                       listaDePartidos[contador].get('actions')[1].get('icon'))
+        state = State.create(listaDePartidos[contador].get('state').get('name'),
+                             listaDePartidos[contador].get('state').get('type'))
+        meta = Meta.create(listaDePartidos[contador].get('meta').get('own_side'),
+                           listaDePartidos[contador].get('meta').get('is_own_match'))
+        championship.save()
+        stadium.save()
+        referee.save()
+        local.save()
+        away.save()
+        actionsCalendar.save()
+        actionsUrl.save()
+        state.save()
+        meta.save()
+        match = Match.create(slug=listaDePartidos[contador].get('slug'),
+                             championship=championship,
+                             local=local,
+                             away=away,
+                             local_goals=listaDePartidos[contador].get('local_goals'),
+                             local_penalty_goals=listaDePartidos[contador].get('local_penalty_goals'),
+                             away_goals=listaDePartidos[contador].get('away_goals'),
+                             away_penalty_goals=listaDePartidos[contador].get('away_penalty_goals'),
+                             scorer=listaDePartidos[contador].get('scorer'),
+                             stadium=stadium,
+                             referee=referee,
+                             ticketing=listaDePartidos[contador].get('ticketing'),
+                             datetime=listaDePartidos[contador].get('datetime'),
+                             timestamp=listaDePartidos[contador].get('timestamp'),
+                             actionsCalendar=actionsCalendar,
+                             actionsUrl=actionsUrl,
+                             meta=meta,
+                             period=listaDePartidos[contador].get('period'),
+                             state=state,
+                             selected=listaDePartidos[contador].get('selected'),
+                             on_live=listaDePartidos[contador].get('on_live'),
+                             is_confirmed=listaDePartidos[contador].get('is_confirmed'))
+        match.save()
+        contador += 1
 
