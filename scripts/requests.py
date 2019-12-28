@@ -1,6 +1,10 @@
 from modelo_sportingCristal.models import *
 import requests
 import json
+'''El algoritmo consta en ver el número de partidos que se analizarán y a partir
+de eso ir iterando sobre la creación de los distintos objetos. Para eso utilizamos 
+un contador y la librería JSON, la cual nos permite transformar el texto en una
+lista de diccionarios, lo cual vuelve la búsqueda de atributos, algo simple'''
 
 def run():
     r = requests.get('http://futbol.funx.io/api/v2/sporting-cristal/home/match/')
